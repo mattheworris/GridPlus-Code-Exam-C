@@ -3,6 +3,8 @@
 
 
 // Debugging
+
+#define DEBUG
 #ifndef DEBUG
     #define TLV_PRINTF(...)
     #define TLV_LOG_HEX(...)
@@ -208,6 +210,72 @@ static inline int encode_length(uint8_t** dest, int destLen, uint32_t length)
     return d-BEGIN;
 }
 
+int tlv_search(int* nTok, const void* src, int srcLen, int type)
+{
+    if (!nTok || *nTok < 0 || !src || srcLen < 0)
+        return TLV_ERR_BADARG;
+
+    const uint8_t* s = src;
+    const uint8_t* const BEGIN = s;
+    const uint8_t* const END = s + srcLen;
+    const uint8_t* offset = 0;
+
+    TLV_LOG("Parse input: ");
+    TLV_LOG_HEX(src, srcLen);
+    TLV_LOG_LINE();
+
+    int n = 0;
+    int err = 0;
+    while (s < END) {
+        // Check for memory
+        if (n >= *nTok) {
+            n = TLV_ERR_NOMEM;
+            break;
+        }
+
+        // Decode the tag field
+        // Save the offset of this tag
+        offset = s;
+        uint32_t tag;
+        err = decode_tag(&tag, &s, END-s);
+        if (err < 0) {
+            n = err;
+            break;
+        }
+        TLV_LOG("tag: %08X\n\r", tag);
+
+        // Find the specified tag type
+        if (tag == type){
+            return offset - BEGIN;
+        }
+
+        // Decode the length field
+        uint32_t len = 0;
+        err = decode_length(&len, &s, END-s);
+        if (err < 0) {
+            n = err;
+            break;
+        }
+        TLV_LOG("len: %u\n\r", len);
+
+        // Point to next object
+        s = s + len;
+        n++;
+    }
+
+    // Output the number of tokens found
+    if (n >= 0)
+        *nTok = n;
+
+    // Handle errors
+    if (n < 0) // Error during parse loop
+        return n;
+    if (s > END) // TLV data exceeds byte array provided
+        return TLV_ERR_MSGSIZE;
+
+    // We didn't find the tag
+    return TLV_ERR_NOENT;
+}
 int tlv_parse(TLVToken* t, int* nTok, const void* src, int srcLen)
 {
     if (!t || !nTok || *nTok < 0 || !src || srcLen < 0)

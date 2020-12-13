@@ -24,6 +24,24 @@ typedef struct {
     const void* val;
 } TLVToken;
 
+/**
+ * Search TLV encoded data for specified TLV tags.
+ *
+ * This parser will parse only one level of TLV objects. An object may include
+ * TLV encoded data itself (ie nested TLV). To parse nested TLV objects, this
+ * parser should be invoked again on the object's value data.
+ *
+ * In the event of an TLV_ERR_NOMEM error, the output of `nTok` will still
+ * represent the total number of tokens found in the byte array.
+ *
+ * [in/out] nTok    Input size of the array / Output number of tokens parsed
+ * [input]  src     Source pointer to TLV data
+ * [input]  srcLen  Length source data to parse
+ * [input]  type    Type of tag to find
+ *
+ * Returns the byte offset of the first tag with the specified type, or negative error
+ */
+int tlv_search(int* nTok, const void* src, int srcLen, int type);
 
 /**
  * Parse TLV encoded data for TLV objects
