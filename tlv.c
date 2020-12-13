@@ -223,7 +223,7 @@ int tlv_parse(TLVToken* t, int* nTok, const void* src, int srcLen)
 
     int n = 0;
     int err = 0;
-    while (s <= END) {
+    while (s < END) {
         // Check for memory
         if (n >= *nTok) {
             n = TLV_ERR_NOMEM;
@@ -239,7 +239,7 @@ int tlv_parse(TLVToken* t, int* nTok, const void* src, int srcLen)
         TLV_LOG("tag: %08X\n\r", t[n].tag);
 
         // Decode the length field
-        err = decode_length(t[n].len, &s, END-s);
+        err = decode_length(&t[n].len, &s, END-s);
         if (err < 0) {
             n = err;
             break;
@@ -257,7 +257,7 @@ int tlv_parse(TLVToken* t, int* nTok, const void* src, int srcLen)
         TLV_LOG_LINE();
 
         // Point to next object
-        s = t[n].val;
+        s = s + t[n].len;
         n++;
     }
 
@@ -288,7 +288,7 @@ int tlv_serialize(void* dest, int* len, const TLVToken* t, int nTok)
 
     *len = 0;
     int err = 0;
-    for (int i = 0; i <= nTok; i++) {
+    for (int i = 0; i < nTok; i++) {
         // Write the tag field
         TLV_LOG("tag: %08X\n\r", t[i].tag);
         err = encode_tag(&d, END-d, t[i].tag);
