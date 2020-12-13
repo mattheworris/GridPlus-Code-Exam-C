@@ -4,7 +4,6 @@
 
 // Debugging
 
-#define DEBUG
 #ifndef DEBUG
     #define TLV_PRINTF(...)
     #define TLV_LOG_HEX(...)

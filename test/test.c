@@ -103,6 +103,15 @@ int main()
     assert(0 == memcmp(tlvRaw, testDataShort, tlvBufSz));
     printf(" - TEST PASS\n\r");
 
+    // Find the specified tag type
+    printf("Search test (SHORT DATA)\n\r");
+    uint32_t tagType = 2;
+    err = tlv_search(&nTok, testDataShort, sizeof(testDataShort), tagType);
+    printf(" - result: %i\n\r", err);
+    assert(err == 00);
+    printf(" - TEST PASS\n\r");
+
+
     // ---- TEST ON LONG DATA ----
     printf("Parse test (LONG DATA)\n\r");
 
@@ -129,6 +138,30 @@ int main()
     printf(" - result: %i\n\r", err);
     assert(err == 269);
     assert(0 == memcmp(tlvRaw, testDataLong, tlvBufSz));
+    printf(" - TEST PASS\n\r");
+    
+    // Search the two tokens
+    printf("Search test 0x02 (LONG DATA)\n\r");
+    nTok = sizeof(t)/sizeof(t[0]);
+    err = tlv_search(&nTok, testDataLong, sizeof(testDataLong), tagType);
+    printf(" - result: %i\n\r", err);
+    assert(err == 263);
+    printf(" - TEST PASS\n\r");
+
+    printf("Search test 0x1F8801 (LONG DATA)\n\r");
+    nTok = sizeof(t)/sizeof(t[0]);
+    tagType = 0x1F8801;
+    err = tlv_search(&nTok, testDataLong, sizeof(testDataLong), tagType);
+    printf(" - result: %i\n\r", err);
+    assert(err == 00);
+    printf(" - TEST PASS\n\r");
+
+    printf("Search test 0x1F8800 (LONG DATA)\n\r");
+    nTok = sizeof(t)/sizeof(t[0]);
+    tagType = 0x1F8800;
+    err = tlv_search(&nTok, testDataLong, sizeof(testDataLong), tagType);
+    printf(" - result: %i\n\r", err);
+    assert(err == TLV_ERR_NOENT);
     printf(" - TEST PASS\n\r");
 }
 
